@@ -13,6 +13,7 @@ const app = express();
 
 // 🌐 Middlewares
 const Frontend_url = process.env.FRONTEND_BASE_URL || "http://localhost:5173"
+console.log("this is frontend url ",Frontend_url)
 app.use(cors({
   origin: Frontend_url,
   credentials: true
