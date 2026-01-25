@@ -1,0 +1,142 @@
+/* dashboard-layout.css - No conflicts guaranteed */
+
+/* ===============================
+   LAYOUT CONTAINER
+   =============================== */
+.dashboard-layout {
+  min-height: 100vh;
+  background-color: var(--bg-page);
+  position: relative;
+}
+
+/* ===============================
+   MOBILE SIDEBAR TOGGLE BUTTON
+   =============================== */
+.dashboard-sidebar-toggle {
+  /* Positioning */
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1001;
+  
+  /* Dimensions */
+  width: 44px;
+  height: 44px;
+  
+  /* Styling */
+  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Effects */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  
+  /* Transitions */
+  transition: all 0.25s ease;
+  
+  /* Reset */
+  padding: 0;
+  margin: 0;
+  outline: none;
+}
+
+/* Button icon styling */
+.dashboard-sidebar-toggle-icon {
+  width: 20px;
+  height: 20px;
+  stroke: var(--text-primary);
+  color: var(--text-primary);
+}
+
+/* Hover state */
+.dashboard-sidebar-toggle:hover {
+  background: var(--bg-muted);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
+.dashboard-sidebar-toggle:hover .dashboard-sidebar-toggle-icon {
+  stroke: var(--text-primary);
+  color: var(--text-primary);
+}
+
+/* Hide on desktop */
+@media (min-width: 740px) {
+  .dashboard-sidebar-toggle {
+    display: none;
+  }
+}
+
+/* ===============================
+   SIDEBAR OVERLAY
+   =============================== */
+.dashboard-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s ease;
+}
+
+.dashboard-sidebar-overlay-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ===============================
+   CONTENT WRAPPER
+   =============================== */
+.dashboard-content-wrapper {
+  width: 100%;
+  transition: all 0.25s ease;
+}
+
+/* Mobile adjustments */
+@media (max-width: 739px) {
+  .dashboard-content-wrapper {
+    padding-top: 76px; /* Button height + spacing */
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: 24px;
+  }
+}
+
+/* Desktop adjustments */
+@media (min-width: 740px) {
+  .dashboard-content-wrapper {
+      padding: 0px 20px ;
+    padding-top: 80px; /* Navbar height */
+  
+    margin: 0 auto;
+  }
+}
+
+/* ===============================
+   UTILITY CLASSES
+   =============================== */
+.dashboard-fade-in {
+  animation: dashboardFadeIn 0.25s ease;
+}
+
+@keyframes dashboardFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Focus accessibility */
+.dashboard-sidebar-toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
