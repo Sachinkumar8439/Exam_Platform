@@ -14,15 +14,10 @@ const app = express();
 // 🌐 Middlewares
 
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://exam-platform-seven.vercel.app"
-  ],
+  origin: "https://exam-platform-seven.vercel.app",
   credentials: true
 }));
 
-// preflight (OPTIONS) fix
-app.options("*", cors());
 app.use(express.json());
 
 
