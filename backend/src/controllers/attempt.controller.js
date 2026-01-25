@@ -134,14 +134,13 @@ exports.submitAttempt = async (req, res) => {
     }
 
     // Check if already submitted
-    if (attempt.score > 0 || attempt.answers.length > 0) {
+    if (attempt.submittedAt) {
       return res.status(400).json({
         success: false,
         message: "Attempt already submitted"
       });
     }
 
-    // Get correct answers
     const questionIds = answers.map(a => a.question);
     const questions = await Question.find({
       _id: { $in: questionIds }
@@ -150,22 +149,20 @@ exports.submitAttempt = async (req, res) => {
     let score = 0;
 
     const evaluatedAnswers = answers.map(ans => {
-      const q = questions.find(q => q._id.toString() === ans.question);
-
-      if (q && q.correctOptionIndex === ans.selectedOptionIndex) {
-        score += 1; // 1 mark per question
-      }
-
+      const q = questions.find(q => q._id.toString() === ans.question.toString());
+      const isCorrect = q ? q.correctOptionIndex === Number(ans.selectedOptionIndex) : false;
+      if (isCorrect) score += 1;
       return {
         question: ans.question,
-        selectedOptionIndex: ans.selectedOptionIndex,
-        isCorrect: q ? q.correctOptionIndex === ans.selectedOptionIndex : false
+        selectedOptionIndex: Number(ans.selectedOptionIndex),
+        isCorrect
       };
     });
 
     attempt.answers = evaluatedAnswers;
     attempt.score = score;
     attempt.totalMarks = questions.length;
+    attempt.submittedAt = new Date();
 
     await attempt.save();
 

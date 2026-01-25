@@ -329,43 +329,50 @@ const TestAttempt = () => {
   };
 
   const handleSubmitTest = async () => {
-    if (!attemptId) {
-      setError("No active attempt found");
-      return;
-    }
+  if (!attemptId) {
+    setError("No active attempt found");
+    return;
+  }
 
-    setLoading(true);
-    
-    try {
-      // Format answers for submission
-      const formattedAnswers = Object.entries(answers)
-        .filter(([_, selectedOptionIndex]) => selectedOptionIndex !== null)
-        .map(([questionId, selectedOptionIndex]) => ({
-          question: questionId,
-          selectedOptionIndex: selectedOptionIndex
-        }));
+  setLoading(true);
+  
+  try {
+    const formattedAnswers = Object.entries(answers)
+      .filter(([_, selectedOptionIndex]) => selectedOptionIndex !== null)
+      .map(([questionId, selectedOptionIndex]) => ({
+        question: questionId,
+        selectedOptionIndex: Number(selectedOptionIndex) // Ensure number
+      }));
 
-      const submissionData = {
-        attemptId,
-        answers: formattedAnswers
-      };
-      
-      const res = await api.post("/attempts/submit", submissionData);
-      
-      if (res.success) {
-        // Clear localStorage on successful submission
-        clearLocalStorage();
-        setStep(4);
-      } else {
-        setError("Failed to submit test");
-      }
-    } catch (error) {
-      console.error("Submission error:", error);
-      setError(error.response?.data?.message || "Failed to submit test. Please try again.");
-    } finally {
-      setLoading(false);
+    const submissionData = {
+      attemptId,
+      answers: formattedAnswers
+    };
+
+    const res = await api.post("/attempts/submit", submissionData);
+
+    if (res.success) {
+      clearLocalStorage();
+      setStep(4); // Show results
+      // Optional: update frontend state with result from backend
+      setAnswers(res.data.answers.reduce((acc, a) => {
+        acc[a.question] = a.selectedOptionIndex;
+        return acc;
+      }, {}));
+      setQuestionStatus(res.data.answers.reduce((acc, a, idx) => {
+        acc[idx] = a.isCorrect ? "answered" : "wrong"; // now can distinguish wrong
+        return acc;
+      }, {}));
+    } else {
+      setError("Failed to submit test");
     }
-  };
+  } catch (error) {
+    console.error("Submission error:", error);
+    setError(error.response?.data?.message || "Failed to submit test. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
@@ -898,12 +905,21 @@ const TestAttempt = () => {
   };
 
 const renderResultsStep = () => {
-  const shouldShowResults = testData?.showResultAfterSubmit;
-  const answeredCount = Object.values(answers).filter(a => a !== null).length;
+  if (!testData) return null;
+
+  const shouldShowResults = testData.showResultAfterSubmit || false;
+
+  const totalQuestions = testData.questions?.length || 0;
+
+  // Calculate counts
+  const answeredCount = Object.values(answers).filter(a => a !== null && a !== undefined).length;
   const correctCount = Object.values(questionStatus).filter(s => s === "answered").length;
-  const totalQuestions = testData?.questions?.length || 0;
+  const wrongCount = Object.values(questionStatus).filter(s => s === "wrong").length;
+  const reviewCount = Object.values(questionStatus).filter(s => s === "review").length;
+  const skippedCount = Object.values(questionStatus).filter(s => s === "skipped").length;
+
   const percentage = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
-  
+
   return (
     <div className="test-attempt-container">
       <div className="results-step">
@@ -911,21 +927,21 @@ const renderResultsStep = () => {
           <CheckCircle size={48} className="success-icon" />
           <h1>Test Submitted Successfully!</h1>
           <p className="test-subtitle">
-            {shouldShowResults 
-              ? "Your results are available below." 
+            {shouldShowResults
+              ? "Your results are available below."
               : "Thank you for completing the test. Your results will be available once the test ends."
             }
           </p>
         </div>
-        
+
         <div className="results-summary">
           <div className="summary-card">
             <h2>{shouldShowResults ? "Test Results" : "Test Summary"}</h2>
-            <p className="test-title">{testData?.title}</p>
-            
+            <p className="test-title">{testData.title}</p>
+
             {shouldShowResults ? (
               <>
-                {/* Score Display - Show only when results are enabled */}
+                {/* Score Display */}
                 <div className="score-display-wrapper">
                   <div className="score-circle-wrapper">
                     <div className="score-circle">
@@ -940,13 +956,13 @@ const renderResultsStep = () => {
                       <div className="total-sub">Total</div>
                     </div>
                   </div>
-                  
+
                   <div className="percentage-display">
                     <div className="percentage-value">{percentage}%</div>
                     <div className="percentage-label">Score</div>
                   </div>
                 </div>
-                
+
                 {/* Detailed Stats Grid */}
                 <div className="detailed-stats-grid">
                   <div className="detailed-stat">
@@ -958,45 +974,41 @@ const renderResultsStep = () => {
                       <div className="detailed-stat-label">Correct</div>
                     </div>
                   </div>
-                  
+
                   <div className="detailed-stat">
                     <div className="detailed-stat-icon wrong-stat">
                       <XCircle size={20} />
                     </div>
                     <div className="detailed-stat-content">
-                      <div className="detailed-stat-value">{answeredCount - correctCount}</div>
+                      <div className="detailed-stat-value">{wrongCount}</div>
                       <div className="detailed-stat-label">Wrong</div>
                     </div>
                   </div>
-                  
+
                   <div className="detailed-stat">
                     <div className="detailed-stat-icon review-stat">
                       <Flag size={20} />
                     </div>
                     <div className="detailed-stat-content">
-                      <div className="detailed-stat-value">
-                        {Object.values(questionStatus).filter(s => s === "review").length}
-                      </div>
+                      <div className="detailed-stat-value">{reviewCount}</div>
                       <div className="detailed-stat-label">Review</div>
                     </div>
                   </div>
-                  
+
                   <div className="detailed-stat">
                     <div className="detailed-stat-icon skipped-stat">
                       <SkipForward size={20} />
                     </div>
                     <div className="detailed-stat-content">
-                      <div className="detailed-stat-value">
-                        {Object.values(questionStatus).filter(s => s === "skipped").length}
-                      </div>
+                      <div className="detailed-stat-value">{skippedCount}</div>
                       <div className="detailed-stat-label">Skipped</div>
                     </div>
                   </div>
                 </div>
               </>
             ) : (
-              /* Basic Summary - When results are disabled */
               <>
+                {/* Basic Summary */}
                 <div className="summary-grid">
                   <div className="summary-stat">
                     <span className="stat-value">{totalQuestions}</span>
@@ -1007,38 +1019,38 @@ const renderResultsStep = () => {
                     <span className="stat-label">Answered</span>
                   </div>
                   <div className="summary-stat">
-                    <span className="stat-value">
-                      {Object.values(questionStatus).filter(s => s === "review").length}
-                    </span>
+                    <span className="stat-value">{reviewCount}</span>
                     <span className="stat-label">Marked for Review</span>
                   </div>
                   <div className="summary-stat">
-                    <span className="stat-value">
-                      {Object.values(questionStatus).filter(s => s === "skipped").length}
-                    </span>
+                    <span className="stat-value">{skippedCount}</span>
                     <span className="stat-label">Skipped</span>
                   </div>
                 </div>
-                
+
                 <div className="warning-note">
                   <Info size={20} />
                   <div>
-                    <p><strong>Note:</strong> Results will be available once the test ends. The test creator has disabled immediate result display.</p>
+                    <p>
+                      <strong>Note:</strong> Results will be available once the test ends.
+                      The test creator has disabled immediate result display.
+                    </p>
                   </div>
                 </div>
               </>
             )}
           </div>
         </div>
-        
+
+        {/* Actions */}
         <div className="results-actions">
           <button className="btn btn-outline" onClick={() => navigate("/u")}>
             <ChevronLeft size={16} />
             Back to Dashboard
           </button>
-          
+
           {/* {shouldShowResults ? (
-            <button 
+            <button
               className="btn btn-primary"
               onClick={() => navigate(`/attempts/${attemptId}`)}
             >
@@ -1046,7 +1058,7 @@ const renderResultsStep = () => {
               View Detailed Results
             </button>
           ) : (
-            <button 
+            <button
               className="btn btn-primary"
               onClick={() => navigate("/u/tests")}
             >

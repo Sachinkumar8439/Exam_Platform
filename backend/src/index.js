@@ -12,9 +12,9 @@ const app = express();
 // 🔗 Database connection
 
 // 🌐 Middlewares
-
+const Frontend_url = process.env.FRONTEND_BASE_URL || "http://localhost:5173"
 app.use(cors({
-  origin: "https://exam-platform-seven.vercel.app",
+  origin: Frontend_url,
   credentials: true
 }));
 
