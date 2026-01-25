@@ -23,7 +23,7 @@ import {
   RefreshCw
 } from "lucide-react";
 import api from "../../../api/api";
-import "./TestCreate.css";
+import "./testCreate.css";
 import { showSuccessToast } from "../../../api/toast";
 import { useNavigate } from "react-router-dom";
 
