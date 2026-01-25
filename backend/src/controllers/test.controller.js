@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Attempt = require("../models/attempt");
 const Test = require("../models/test");
 const Question = require("../models/question");
 
@@ -100,6 +101,113 @@ exports.createTest = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Test creation failed"
+    });
+  }
+};
+
+exports.getTestAttemptsReport = async (req, res) => {
+  try {
+    const { testId } = req.params;
+
+    // 1️⃣ Invalid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(testId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid test"
+      });
+    }
+
+    // 2️⃣ Test exist check (no user filter)
+    const testExists = await Test.findById(testId)
+      .select("title duration questions user");
+
+    if (!testExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Requested test not found"
+      });
+    }
+
+    // 3️⃣ Ownership check
+    if (testExists.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to view this test"
+      });
+    }
+
+    const totalMarks = testExists.questions.length;
+
+    // 4️⃣ Attempts aggregation
+    const attempts = await Attempt.aggregate([
+      {
+        $match: {
+          test: testExists._id,
+          submittedAt: { $ne: null }
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+      { $unwind: "$user" },
+      {
+        $project: {
+          _id: 0,
+          userId: "$user._id",
+          name: "$user.name",
+          score: 1,
+          percentage: {
+            $round: [
+              {
+                $multiply: [
+                  { $divide: ["$score", totalMarks] },
+                  100
+                ]
+              },
+              2
+            ]
+          },
+          startedAt: 1,
+          submittedAt: 1,
+          timeTakenMinutes: {
+            $round: [
+              {
+                $divide: [
+                  { $subtract: ["$submittedAt", "$startedAt"] },
+                  1000 * 60
+                ]
+              },
+              2
+            ]
+          }
+        }
+      },
+      { $sort: { score: -1, submittedAt: 1 } }
+    ]);
+
+    // 5️⃣ Success response
+    return res.status(200).json({
+      success: true,
+      test: {
+        id: testExists._id,
+        title: testExists.title,
+        duration: testExists.duration,
+        totalMarks
+      },
+      totalAttempts: attempts.length,
+      attempts
+    });
+
+  } catch (error) {
+    console.error("Test Report Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch test report"
     });
   }
 };

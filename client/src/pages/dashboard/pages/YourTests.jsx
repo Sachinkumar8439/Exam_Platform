@@ -100,6 +100,7 @@ const YourTests = () => {
     switch (action) {
       case "edit":
         console.log("Edit test:", testId);
+        navigate(`/u/test-create/${testId}`);
         break;
       case "delete":
         if (window.confirm("Are you sure you want to delete this test?")) {
@@ -114,9 +115,11 @@ const YourTests = () => {
         break;
       case "view":
         console.log("View test:", testId);
+        // Navigate to test report page
+        navigate(`/u/tests/report/${testId}`);
         break;
       case "copy-test-link":
-        console.log("Duplicate test:", testId);
+        console.log("test link:", testId);
         try {
           const link = `${window.location.origin}/t/attempt/${testId}`;
           await copyToClipboard(link);
@@ -131,6 +134,7 @@ const YourTests = () => {
           const res = await api.put(`/tests/${testId}`, { isPublished: true });
           console.log(res);
           fetchMyTests();
+          showSuccessToast("Test published successfully !");
         } catch {
           showErrorToast("Failed to Publish test");
         }
@@ -198,6 +202,18 @@ const YourTests = () => {
       default:
         return "muted";
     }
+  };
+
+  // Check if edit button should be shown
+  const canEditTest = (test) => {
+    // Edit only allowed for draft, upcoming, and published (but not live)
+    return ["draft", "upcoming", "published"].includes(test.status) && !test.isLive;
+  };
+
+  // Check if view results should be shown/enabled
+  const canViewResults = (test) => {
+    // View results only for completed tests
+    return test.status === "completed";
   };
 
   return (
@@ -269,10 +285,6 @@ const YourTests = () => {
         </div>
       </div>
       <div className="your-tests-header">
-        {/* <div className="header-content">
-          <h1>Your Tests</h1>
-          <p className="subtitle">Manage and track all tests you have created</p>
-        </div> */}
         <button
           className="btn btn-primary create-btn"
           onClick={() => navigate("/u/test-create")}
@@ -407,6 +419,8 @@ const YourTests = () => {
                   formatTime={formatTime}
                   getStatusIcon={getStatusIcon}
                   getStatusColor={getStatusColor}
+                  canEditTest={canEditTest}
+                  canViewResults={canViewResults}
                 />
               ))}
             </div>
@@ -427,9 +441,19 @@ const TestCard = ({
   formatTime,
   getStatusIcon,
   getStatusColor,
+  canEditTest,
+  canViewResults,
 }) => {
   const status = test.status;
   const statusColor = getStatusColor(status);
+  const showEditButton = canEditTest(test);
+  const showViewResults = canViewResults(test);
+
+  // Check if test is currently live
+  const isCurrentlyLive = test.status === "live";
+  
+  // Check if test is completed
+  const isCompleted = test.status === "completed";
 
   return (
     <div className={`test-card ${isMobile ? "mobile" : ""}`}>
@@ -460,14 +484,29 @@ const TestCard = ({
 
           {dropdownOpen && (
             <div className={`dropdown-menu ${isMobile ? "mobile" : ""}`}>
-              <button onClick={(e) => onAction("view", test._id, e)}>
+              {/* View button - always shown but disabled if not completed */}
+              <button 
+                onClick={(e) => showViewResults && onAction("view", test._id, e)}
+                className={!showViewResults ? "disabled" : ""}
+                disabled={!showViewResults}
+              >
                 <Eye size={14} />
-                View
+                View Results
+                {!showViewResults && (
+                  <span className="dropdown-tooltip">
+                    Available after test completion
+                  </span>
+                )}
               </button>
-              <button onClick={(e) => onAction("edit", test._id, e)}>
-                <Edit size={14} />
-                Edit
-              </button>
+              
+              {/* Edit button - hidden for live tests */}
+              {showEditButton && (
+                <button onClick={(e) => onAction("edit", test._id, e)}>
+                  <Edit size={14} />
+                  Edit
+                </button>
+              )}
+              
               <button onClick={(e) => onAction("copy-test-link", test._id, e)}>
                 <Copy size={14} />
                 Test Link
@@ -559,12 +598,24 @@ const TestCard = ({
             </div>
 
             <button
-              className={`btn btn-sm ${status === "draft" ? "btn-outline" : "btn-primary"}`}
-              onClick={(e) =>
-                onAction(status === "draft" ? "publish" : "view", test._id, e)
-              }
+              className={`btn btn-sm ${isCurrentlyLive ? "btn-live" : isCompleted ? "btn-primary" : "btn-outline"}`}
+              onClick={(e) => {
+                if (isCompleted) {
+                  onAction("view", test._id, e);
+                } else if (test.status === "draft") {
+                  onAction("publish", test._id, e);
+                } else {
+                  // For other statuses, show appropriate action
+                  onAction("view", test._id, e);
+                }
+              }}
+              disabled={isCurrentlyLive || (!isCompleted && test.status !== "draft")}
             >
-              {status === "draft" ? "Publish" : "View Results"}
+              {isCurrentlyLive ? "Live Now" : 
+               isCompleted ? "View Results" : 
+               test.status === "draft" ? "Publish" : 
+               test.status.charAt(0).toUpperCase() + test.status.slice(1)}
+              {isCurrentlyLive && <span className="live-pulse"></span>}
             </button>
           </>
         ) : (
@@ -579,12 +630,23 @@ const TestCard = ({
             </div>
 
             <button
-              className={`btn btn-sm mobile-btn ${status === "draft" ? "btn-outline" : "btn-primary"}`}
-              onClick={(e) =>
-                onAction(status === "draft" ? "publish" : "view", test._id, e)
-              }
+              className={`btn btn-sm mobile-btn ${isCurrentlyLive ? "btn-live" : isCompleted ? "btn-primary" : "btn-outline"}`}
+              onClick={(e) => {
+                if (isCompleted) {
+                  onAction("view", test._id, e);
+                } else if (test.status === "draft") {
+                  onAction("publish", test._id, e);
+                } else {
+                  onAction("view", test._id, e);
+                }
+              }}
+              disabled={isCurrentlyLive || (!isCompleted && test.status !== "draft")}
             >
-              {status === "draft" ? "Publish" : "View"}
+              {isCurrentlyLive ? "Live" : 
+               isCompleted ? "Results" : 
+               test.status === "draft" ? "Publish" : 
+               "View"}
+              {isCurrentlyLive && <span className="live-pulse"></span>}
             </button>
           </>
         )}

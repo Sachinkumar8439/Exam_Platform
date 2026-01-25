@@ -1,6 +1,7 @@
 const Attempt = require("../models/attempt");
 const Test = require("../models/test");
 const Question = require("../models/question");
+const { default: mongoose } = require("mongoose");
 /**
  * ▶️ Start Test Attempt
  * POST /api/attempts/start
@@ -180,6 +181,139 @@ exports.submitAttempt = async (req, res) => {
       success: false,
       message: "Submit attempt failed",
       error: error.message
+    });
+  }
+};
+
+
+exports.getMyAttemptsList = async (req, res) => {
+  try {
+    const userId = req.user?._id || req.query.userId;
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user id"
+      });
+    }
+
+    const attempts = await Attempt.aggregate([
+      // 1️⃣ User filter
+      {
+        $match: {
+          user: new mongoose.Types.ObjectId(userId)
+        }
+      },
+
+      // 2️⃣ Join Test
+      {
+        $lookup: {
+          from: "tests",
+          localField: "test",
+          foreignField: "_id",
+          as: "test"
+        }
+      },
+      { $unwind: "$test" },
+
+      // 3️⃣ Join Exam
+      {
+        $lookup: {
+          from: "exams",
+          localField: "test.exam",
+          foreignField: "_id",
+          as: "exam"
+        }
+      },
+      { $unwind: "$exam" },
+
+      // 4️⃣ Compute totalMarks from TEST (✔ correct)
+      {
+        $addFields: {
+          totalMarks: { $size: "$test.questions" }
+        }
+      },
+
+      // 5️⃣ Shape LIST response
+      {
+        $project: {
+          _id: 0,
+          attemptId: "$_id",
+          testId: "$test._id",
+          testTitle: "$test.title",
+          exam: {
+            id: "$exam._id",
+            name: "$exam.name"
+          },
+
+          score: { $ifNull: ["$score", 0] },
+          totalMarks: 1,
+
+          percentage: {
+            $cond: [
+              { $gt: ["$totalMarks", 0] },
+              {
+                $round: [
+                  {
+                    $multiply: [
+                      { $divide: ["$score", "$totalMarks"] },
+                      100
+                    ]
+                  },
+                  2
+                ]
+              },
+              0
+            ]
+          },
+
+          status: {
+            $cond: [
+              { $ifNull: ["$submittedAt", false] },
+              "submitted",
+              "in-progress"
+            ]
+          },
+
+          // ⏱ time in SECONDS (better UX)
+          timeTakenSeconds: {
+            $cond: [
+              { $ifNull: ["$submittedAt", false] },
+              {
+                $round: [
+                  {
+                    $divide: [
+                      { $subtract: ["$submittedAt", "$startedAt"] },
+                      1000
+                    ]
+                  },
+                  0
+                ]
+              },
+              null
+            ]
+          },
+
+          startedAt: 1,
+          submittedAt: 1,
+          createdAt: 1
+        }
+      },
+
+      { $sort: { createdAt: -1 } }
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      totalAttempts: attempts.length,
+      attempts
+    });
+
+  } catch (error) {
+    console.error("Get My Attempts List Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch attempts list"
     });
   }
 };

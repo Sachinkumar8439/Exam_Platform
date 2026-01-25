@@ -19,6 +19,8 @@ const api = async (path, payload = null, options = {}) => {
       params: method === "GET" ? payload : undefined,
     });
 
+    console.log(response)
+
     return response.data;
   } catch (error) {
     console.log(error.message);

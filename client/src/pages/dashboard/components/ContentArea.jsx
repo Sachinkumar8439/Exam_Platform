@@ -9,6 +9,8 @@ import Dashboard from '../pages/Dashboard';
 import '../styles/content.css';
 import YourTests from '../pages/YourTests';
 import TestCreate from '../pages/TestCreate';
+import TestReport from '../pages/TestReport';
+import MyAttempts from '../pages/MyAttempts';
 
 const ContentArea = () => {
   return (
@@ -17,8 +19,9 @@ const ContentArea = () => {
         <Route path="" element={<Dashboard />} />
         {/* <Route path="/profile" element={<Profile />} /> */}
         <Route path="/tests" element={<YourTests />} />
+        <Route path="/tests/report/:testId" element={<TestReport />} />
         <Route path="/test-create" element={<TestCreate />} />
-        {/* <Route path="/attempts" element={<YourAttempts />} /> */}
+        <Route path="/attempts" element={<MyAttempts />} />
         {/* <Route path="/room" element={<RoomPlay />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/settings" element={<Settings />} /> */}
