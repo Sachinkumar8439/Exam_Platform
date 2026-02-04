@@ -218,67 +218,65 @@ const YourTests = () => {
 
   return (
     <div className="your-tests-page">
-      {/* ===== Header ===== */}
-
       {/* ===== Stats Overview ===== */}
       <div
-        className={`stats-overview ${isMobile ? "mobile" : ""} ${isSmallMobile ? "small-mobile" : ""}`}
+        className={`your-tests-stats-overview ${isMobile ? "mobile" : ""} ${isSmallMobile ? "small-mobile" : ""}`}
       >
-        <div className="stat-card">
-          <div className="stat-icon total">
+        <div className="your-tests-stat-card">
+          <div className="your-tests-stat-icon total">
             <BarChart3 size={isMobile ? 20 : 24} />
           </div>
-          <div className="stat-content">
+          <div className="your-tests-stat-content">
             <h3>{stats.total}</h3>
             <p>{isMobile ? "Total" : "Total Tests"}</p>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon draft">
+        <div className="your-tests-stat-card">
+          <div className="your-tests-stat-icon draft">
             <FileText size={isMobile ? 20 : 24} />
           </div>
-          <div className="stat-content">
+          <div className="your-tests-stat-content">
             <h3>{stats.draft}</h3>
             <p>{isMobile ? "Draft" : "Draft"}</p>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon published">
+        <div className="your-tests-stat-card">
+          <div className="your-tests-stat-icon published">
             <Eye size={isMobile ? 20 : 24} />
           </div>
-          <div className="stat-content">
+          <div className="your-tests-stat-content">
             <h3>{stats.published}</h3>
             <p>{isMobile ? "Pub" : "Published"}</p>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon live">
+        <div className="your-tests-stat-card">
+          <div className="your-tests-stat-icon live">
             <Users size={isMobile ? 20 : 24} />
           </div>
-          <div className="stat-content">
+          <div className="your-tests-stat-content">
             <h3>{stats.live}</h3>
             <p>{isMobile ? "Live" : "Live Now"}</p>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon upcoming">
+        <div className="your-tests-stat-card">
+          <div className="your-tests-stat-icon upcoming">
             <Calendar size={isMobile ? 20 : 24} />
           </div>
-          <div className="stat-content">
+          <div className="your-tests-stat-content">
             <h3>{stats.upcoming}</h3>
             <p>{isMobile ? "Upcom" : "Upcoming"}</p>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon completed">
+        <div className="your-tests-stat-card">
+          <div className="your-tests-stat-icon completed">
             <CheckCircle size={isMobile ? 20 : 24} />
           </div>
-          <div className="stat-content">
+          <div className="your-tests-stat-content">
             <h3>{stats.completed}</h3>
             <p>{isMobile ? "Done" : "Completed"}</p>
           </div>
@@ -286,7 +284,7 @@ const YourTests = () => {
       </div>
       <div className="your-tests-header">
         <button
-          className="btn btn-primary create-btn"
+          className="your-tests-btn your-tests-btn-primary your-tests-create-btn"
           onClick={() => navigate("/u/test-create")}
         >
           <Plus size={isMobile ? 16 : 20} />
@@ -296,19 +294,19 @@ const YourTests = () => {
 
       {/* ===== Loading State ===== */}
       {loading && (
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
+        <div className="your-tests-loading-state">
+          <div className="your-tests-loading-spinner"></div>
           <p>Loading your tests...</p>
         </div>
       )}
 
       {/* ===== Error State ===== */}
       {!loading && error && (
-        <div className="error-state card">
+        <div className="your-tests-error-state">
           <AlertCircle size={isMobile ? 32 : 48} color="var(--color-error)" />
           <h3>Failed to Load</h3>
           <p>{error}</p>
-          <button className="btn btn-outline mt-md" onClick={fetchMyTests}>
+          <button className="your-tests-btn your-tests-btn-outline your-tests-mt-md" onClick={fetchMyTests}>
             Try Again
           </button>
         </div>
@@ -316,14 +314,14 @@ const YourTests = () => {
 
       {/* ===== Test List ===== */}
       {!loading && !error && (
-        <div className="tests-section">
-          <div className="section-header">
+        <div className="your-tests-section">
+          <div className="your-tests-section-header">
             <h2>Recent Tests ({filteredTests.length})</h2>
 
             {isMobile ? (
-              <div className="mobile-filter">
+              <div className="your-tests-mobile-filter">
                 <button
-                  className="filter-toggle-btn"
+                  className="your-tests-filter-toggle-btn"
                   onClick={() => setShowFilters(!showFilters)}
                 >
                   <Filter size={16} />
@@ -335,8 +333,8 @@ const YourTests = () => {
                 </button>
 
                 {showFilters && (
-                  <div className="mobile-filter-dropdown">
-                    <div className="filter-options">
+                  <div className="your-tests-mobile-filter-dropdown">
+                    <div className="your-tests-filter-options">
                       {[
                         "all",
                         "draft",
@@ -347,7 +345,7 @@ const YourTests = () => {
                       ].map((status) => (
                         <button
                           key={status}
-                          className={`filter-option ${filterStatus === status ? "active" : ""}`}
+                          className={`your-tests-filter-option ${filterStatus === status ? "active" : ""}`}
                           onClick={() => {
                             setFilterStatus(status);
                             setShowFilters(false);
@@ -355,7 +353,7 @@ const YourTests = () => {
                         >
                           {status === "all"
                             ? "All Tests"
-                            : status === "pub"
+                            : status === "published"
                               ? "Published"
                               : status.charAt(0).toUpperCase() +
                                 status.slice(1)}
@@ -366,9 +364,9 @@ const YourTests = () => {
                 )}
               </div>
             ) : (
-              <div className="filter-controls">
+              <div className="your-tests-filter-controls">
                 <select
-                  className="filter-select"
+                  className="your-tests-filter-select"
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
                 >
@@ -384,7 +382,7 @@ const YourTests = () => {
           </div>
 
           {filteredTests.length === 0 ? (
-            <div className="empty-state">
+            <div className="your-tests-empty-state">
               <FileText size={isMobile ? 48 : 64} color="var(--text-muted)" />
               <h3>No Tests Found</h3>
               <p>
@@ -393,7 +391,7 @@ const YourTests = () => {
                   : `No ${filterStatus} tests found`}
               </p>
               <button
-                className="btn btn-primary mt-md"
+                className="your-tests-btn your-tests-btn-primary your-tests-mt-md"
                 onClick={() => navigate("/u/test-create")}
               >
                 <Plus size={16} />
@@ -401,7 +399,7 @@ const YourTests = () => {
               </button>
             </div>
           ) : (
-            <div className={`tests-grid ${isMobile ? "mobile" : ""}`}>
+            <div className={`your-tests-grid ${isMobile ? "mobile" : ""}`}>
               {filteredTests.map((test) => (
                 <TestCard
                   key={test._id}
@@ -456,10 +454,10 @@ const TestCard = ({
   const isCompleted = test.status === "completed";
 
   return (
-    <div className={`test-card ${isMobile ? "mobile" : ""}`}>
-      <div className="test-card-header">
-        <div className="test-meta">
-          <span className={`test-status ${statusColor}`}>
+    <div className={`your-tests-test-card ${isMobile ? "mobile" : ""}`}>
+      <div className="your-tests-test-card-header">
+        <div className="your-tests-test-meta">
+          <span className={`your-tests-test-status ${statusColor}`}>
             {getStatusIcon(status)}
             {isMobile
               ? status === "upcoming"
@@ -470,20 +468,20 @@ const TestCard = ({
               : status.charAt(0).toUpperCase() + status.slice(1)}
           </span>
           {!isMobile && (
-            <span className="test-date">
+            <span className="your-tests-test-date">
               <Clock size={12} />
               Created: {formatDate(test.createdAt)}
             </span>
           )}
         </div>
 
-        <div className="test-actions">
-          <button className="action-btn" onClick={onToggleDropdown}>
+        <div className="your-tests-test-actions">
+          <button className="your-tests-action-btn" onClick={onToggleDropdown}>
             <MoreVertical size={isMobile ? 18 : 20} />
           </button>
 
           {dropdownOpen && (
-            <div className={`dropdown-menu ${isMobile ? "mobile" : ""}`}>
+            <div className={`your-tests-dropdown-menu ${isMobile ? "mobile" : ""}`}>
               {/* View button - always shown but disabled if not completed */}
               <button 
                 onClick={(e) => showViewResults && onAction("view", test._id, e)}
@@ -493,7 +491,7 @@ const TestCard = ({
                 <Eye size={14} />
                 View Results
                 {!showViewResults && (
-                  <span className="dropdown-tooltip">
+                  <span className="your-tests-dropdown-tooltip">
                     Available after test completion
                   </span>
                 )}
@@ -524,54 +522,54 @@ const TestCard = ({
         </div>
       </div>
 
-      <div className="test-card-body">
-        <h3 className="test-title">{test.title}</h3>
+      <div className="your-tests-test-card-body">
+        <h3 className="your-tests-test-title">{test.title}</h3>
 
         {isMobile ? (
-          <div className="mobile-test-info">
-            <div className="mobile-info-row">
-              <span className="mobile-info-label">
+          <div className="your-tests-mobile-test-info">
+            <div className="your-tests-mobile-info-row">
+              <span className="your-tests-mobile-info-label">
                 {test.exam?.name || "N/A"}
               </span>
-              <span className="mobile-info-dot">•</span>
-              <span className="mobile-info-label">
+              <span className="your-tests-mobile-info-dot">•</span>
+              <span className="your-tests-mobile-info-label">
                 {test.subject?.name || "N/A"}
               </span>
             </div>
-            <div className="mobile-info-row">
-              <span className="mobile-info-value">
+            <div className="your-tests-mobile-info-row">
+              <span className="your-tests-mobile-info-value">
                 {test.chapter?.name || "N/A"}
               </span>
             </div>
           </div>
         ) : (
-          <div className="test-info">
-            <div className="info-row">
-              <span className="info-label">Exam:</span>
-              <span className="info-value">{test.exam?.name || "N/A"}</span>
+          <div className="your-tests-test-info">
+            <div className="your-tests-info-row">
+              <span className="your-tests-info-label">Exam:</span>
+              <span className="your-tests-info-value">{test.exam?.name || "N/A"}</span>
             </div>
-            <div className="info-row">
-              <span className="info-label">Subject:</span>
-              <span className="info-value">{test.subject?.name || "N/A"}</span>
+            <div className="your-tests-info-row">
+              <span className="your-tests-info-label">Subject:</span>
+              <span className="your-tests-info-value">{test.subject?.name || "N/A"}</span>
             </div>
-            <div className="info-row">
-              <span className="info-label">Chapter:</span>
-              <span className="info-value">{test.chapter?.name || "N/A"}</span>
+            <div className="your-tests-info-row">
+              <span className="your-tests-info-label">Chapter:</span>
+              <span className="your-tests-info-value">{test.chapter?.name || "N/A"}</span>
             </div>
           </div>
         )}
 
-        <div className={`test-stats ${isMobile ? "mobile" : ""}`}>
-          <div className="stat">
+        <div className={`your-tests-test-stats ${isMobile ? "mobile" : ""}`}>
+          <div className="your-tests-stat">
             <FileText size={isMobile ? 14 : 16} />
             <span>{test.questionsCount || 0} Qs</span>
           </div>
-          <div className="stat">
+          <div className="your-tests-stat">
             <Clock size={isMobile ? 14 : 16} />
             <span>{test.duration || 0} Min</span>
           </div>
           {isMobile && (
-            <div className="stat">
+            <div className="your-tests-stat">
               <Calendar size={14} />
               <span>{formatDate(test.startTime, true)}</span>
             </div>
@@ -579,26 +577,26 @@ const TestCard = ({
         </div>
       </div>
 
-      <div className={`test-card-footer ${isMobile ? "mobile" : ""}`}>
+      <div className={`your-tests-test-card-footer ${isMobile ? "mobile" : ""}`}>
         {!isMobile ? (
           <>
-            <div className="schedule-info">
-              <div className="schedule-item">
-                <span className="schedule-label">Starts:</span>
-                <span className="schedule-time">
+            <div className="your-tests-schedule-info">
+              <div className="your-tests-schedule-item">
+                <span className="your-tests-schedule-label">Starts:</span>
+                <span className="your-tests-schedule-time">
                   {formatDate(test.startTime)} at {formatTime(test.startTime)}
                 </span>
               </div>
-              <div className="schedule-item">
-                <span className="schedule-label">Ends:</span>
-                <span className="schedule-time">
+              <div className="your-tests-schedule-item">
+                <span className="your-tests-schedule-label">Ends:</span>
+                <span className="your-tests-schedule-time">
                   {formatDate(test.endTime)} at {formatTime(test.endTime)}
                 </span>
               </div>
             </div>
 
             <button
-              className={`btn btn-sm ${isCurrentlyLive ? "btn-live" : isCompleted ? "btn-primary" : "btn-outline"}`}
+              className={`your-tests-btn your-tests-btn-sm ${isCurrentlyLive ? "your-tests-btn-live" : isCompleted ? "your-tests-btn-primary" : "your-tests-btn-outline"}`}
               onClick={(e) => {
                 if (isCompleted) {
                   onAction("view", test._id, e);
@@ -620,8 +618,8 @@ const TestCard = ({
           </>
         ) : (
           <>
-            <div className="mobile-schedule">
-              <div className="mobile-schedule-time">
+            <div className="your-tests-mobile-schedule">
+              <div className="your-tests-mobile-schedule-time">
                 <Clock size={12} />
                 <span>
                   {formatTime(test.startTime)} - {formatTime(test.endTime)}
@@ -630,7 +628,7 @@ const TestCard = ({
             </div>
 
             <button
-              className={`btn btn-sm mobile-btn ${isCurrentlyLive ? "btn-live" : isCompleted ? "btn-primary" : "btn-outline"}`}
+              className={`your-tests-btn your-tests-btn-sm ${isCurrentlyLive ? "your-tests-btn-live" : isCompleted ? "your-tests-btn-primary" : "your-tests-btn-outline"}`}
               onClick={(e) => {
                 if (isCompleted) {
                   onAction("view", test._id, e);

@@ -91,7 +91,7 @@ exports.bulkCreateQuestions = async (req, res) => {
       options: q.options,
       correctOptionIndex: q.correctOptionIndex,
       difficulty: q.difficulty || "medium",
-      isApproved: false
+      isApproved: true,
     }));
 
     const inserted = await Question.insertMany(preparedQuestions);
@@ -111,6 +111,97 @@ exports.bulkCreateQuestions = async (req, res) => {
     });
   }
 };
+
+
+exports.bulkCreateQuestionsByChapters = async (req, res) => {
+  try {
+    const { examId, subjectId, data, createdBy } = req.body;
+
+    const addedBy = req.user?._id || createdBy;
+
+    // 🔴 Basic validation
+    if (!examId || !subjectId || !addedBy || !Array.isArray(data) || data.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "examId, subjectId, createdBy and data array are required"
+      });
+    }
+
+    // 🔴 Validate exam & subject
+    const examExists = await Exam.findById(examId);
+    const subjectExists = await Subject.findById(subjectId);
+
+    if (!examExists || !subjectExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Exam or Subject not found"
+      });
+    }
+
+    let questionsToInsert = [];
+
+    // 🔁 Loop chapters
+    for (const chapterBlock of data) {
+      const { chapterId, questions } = chapterBlock;
+
+      if (!chapterId || !Array.isArray(questions) || questions.length === 0) {
+        continue;
+      }
+
+      // optional: validate chapter
+      const chapterExists = await Chapter.findById(chapterId);
+      if (!chapterExists) continue;
+
+      for (const q of questions) {
+        if (
+          !q.questionText ||
+          !Array.isArray(q.options) ||
+          q.correctOptionIndex === undefined
+        ) {
+          continue;
+        }
+
+        questionsToInsert.push({
+          exam: examId,
+          subject: subjectId,
+          chapter: chapterId,
+          questionText: q.questionText,
+          options: q.options,
+          correctOptionIndex: q.correctOptionIndex,
+          difficulty: q.difficulty || "medium",
+          createdBy: addedBy,
+          isApproved: false
+        });
+      }
+    }
+
+    if (questionsToInsert.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No valid questions found to insert"
+      });
+    }
+
+    // 🚀 Bulk insert
+    const inserted = await Question.insertMany(questionsToInsert);
+
+    res.status(201).json({
+      success: true,
+      message: "Questions added successfully (pending approval)",
+      addedCount: inserted.length,
+      data: inserted
+    });
+
+  } catch (error) {
+    console.error("bulkCreateQuestionsByChapters error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Bulk question insert failed",
+      error: error.message
+    });
+  }
+};
+
 
 /**
  * 📥 Get Questions (with filters + pagination)

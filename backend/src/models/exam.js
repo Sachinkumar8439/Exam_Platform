@@ -32,7 +32,7 @@ const examSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-examSchema.index({ slug: 1 });
+// examSchema.index({ slug: 1 });
 examSchema.index({ isActive: 1 });
 
 module.exports = mongoose.model("Exam", examSchema);

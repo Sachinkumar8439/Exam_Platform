@@ -1,15 +1,20 @@
 const express = require("express");
+const auth = require("../middlewares/auth")
 const {
-  createCourse,
+  createExam,
   getAllCourses,
   getCourseById,
   updateCourse,
-  deleteCourse
+  deleteCourse,
+  bulkCreateExams
 } = require("../controllers/course.controller");
 
 const router = express.Router();
 
-router.post("/", createCourse);
+router.use(auth);
+
+router.post("/", createExam);
+router.post("/bulk", bulkCreateExams);
 router.get("/", getAllCourses);
 router.get("/:id", getCourseById);
 router.put("/:id", updateCourse);

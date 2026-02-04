@@ -106,19 +106,15 @@
 /* Mobile adjustments */
 @media (max-width: 739px) {
   .dashboard-content-wrapper {
-    padding-top: 76px; /* Button height + spacing */
-    padding-left: 16px;
-    padding-right: 16px;
-    padding-bottom: 24px;
+    /* padding-top: 76px;  */
+    padding: px 20px;
   }
 }
 
 /* Desktop adjustments */
 @media (min-width: 740px) {
   .dashboard-content-wrapper {
-      padding: 0px 20px ;
-    padding-top: 80px; /* Navbar height */
-  
+      padding: 20px 20px ;  
     margin: 0 auto;
   }
 }

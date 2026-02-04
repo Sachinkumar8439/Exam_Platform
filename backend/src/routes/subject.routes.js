@@ -7,8 +7,10 @@ const {
   deleteSubject,
   bulkCreateSubjects 
 } = require("../controllers/subject.controller");
+const auth = require("../middlewares/auth");
 
 const router = express.Router();
+router.use(auth)
 
 router.post("/", createSubject);
 router.get("/", getAllSubjects);

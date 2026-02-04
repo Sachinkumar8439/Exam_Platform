@@ -6,6 +6,10 @@ const { default: mongoose } = require("mongoose");
  * ▶️ Start Test Attempt
  * POST /api/attempts/start
  */
+/**
+ * ▶️ Start Test Attempt
+ * POST /api/attempts/start
+ */
 exports.startAttempt = async (req, res) => {
   try {
     const { testId } = req.body;
@@ -18,6 +22,9 @@ exports.startAttempt = async (req, res) => {
       });
     }
 
+    /* =====================
+       1️⃣ Fetch Test
+       ===================== */
     const test = await Test.findById(testId);
     if (!test) {
       return res.status(404).json({
@@ -26,7 +33,9 @@ exports.startAttempt = async (req, res) => {
       });
     }
 
-    // Check if test is published
+    /* =====================
+       2️⃣ Test Validations
+       ===================== */
     if (!test.isPublished) {
       return res.status(403).json({
         success: false,
@@ -34,8 +43,8 @@ exports.startAttempt = async (req, res) => {
       });
     }
 
-    // Check if test has started
     const now = new Date();
+
     if (now < test.startTime) {
       return res.status(403).json({
         success: false,
@@ -43,7 +52,6 @@ exports.startAttempt = async (req, res) => {
       });
     }
 
-    // Check if test has ended
     if (now > test.endTime) {
       return res.status(403).json({
         success: false,
@@ -51,65 +59,72 @@ exports.startAttempt = async (req, res) => {
       });
     }
 
-    // ✅ FIRST: Check for existing ACTIVE (unsubmitted) attempt
-    const existingAttempt = await Attempt.findOne({
+    /* =====================
+       3️⃣ Check ACTIVE attempt (NOT submitted)
+       ===================== */
+    const activeAttempt = await Attempt.findOne({
       user: userId,
       test: testId,
-      score: 0, // Not submitted yet
+      submittedAt: null
     });
 
-    // ✅ If existing unsubmitted attempt exists, return it
-    if (existingAttempt) {
+    // ✅ Resume same attempt
+    if (activeAttempt) {
       return res.status(200).json({
         success: true,
-        message: "Existing attempt found",
-        data: existingAttempt,
-        isResume: true // Flag to indicate this is a resume
+        message: "Resuming existing attempt",
+        data: activeAttempt,
+        isResume: true
       });
     }
 
-    // ✅ Check for SUBMITTED attempts
-    const submittedAttempts = await Attempt.find({
+    /* =====================
+       4️⃣ Check submitted attempts
+       ===================== */
+    const submittedAttemptsCount = await Attempt.countDocuments({
       user: userId,
       test: testId,
-      score: { $gt: 0 } // Already submitted
+      submittedAt: { $ne: null }
     });
 
-    // ✅ If user has already submitted and test doesn't allow multiple attempts
-    if (submittedAttempts.length > 0 && !test.allowMultipleAttempts) {
+    // ❌ Multiple attempts not allowed
+    if (submittedAttemptsCount > 0 && !test.allowMultipleAttempts) {
       return res.status(400).json({
         success: false,
-        message: "You have already attempted this test",
-        attempts: submittedAttempts
+        message: "You have already attempted this test"
       });
     }
 
-    // ✅ Create new attempt
-    const attempt = await Attempt.create({
+    /* =====================
+       5️⃣ Create NEW attempt
+       ===================== */
+    const newAttempt = await Attempt.create({
       user: userId,
       test: testId,
       answers: [],
       score: 0,
       totalMarks: test.questions.length,
-      startedAt: new Date() // Add startedAt timestamp
+      startedAt: new Date(),
+      submittedAt: null
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: "Test attempt started",
-      data: attempt,
-      isResume: false // Flag to indicate this is a new attempt
+      message: "New attempt started",
+      data: newAttempt,
+      isResume: false
     });
 
   } catch (error) {
     console.error("Start attempt error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Start attempt failed",
       error: error.message
     });
   }
 };
+
 
 /**
  * 📝 Submit Test Attempt

@@ -777,6 +777,7 @@
   color: var(--text-primary);
   margin-bottom: var(--space-md);
   font-weight: 500;
+  white-space: pre-line;
 }
 
 @media (max-width: 640px) {

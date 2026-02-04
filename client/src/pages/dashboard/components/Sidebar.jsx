@@ -8,8 +8,6 @@ import {
   Settings,
   LogOut,
   Brain,
-  Trophy,
-  Target,
   Crown
 } from 'lucide-react';
 import '../styles/sidebar.css';
@@ -110,29 +108,8 @@ const Sidebar = ({ isOpen, onClose }) => {
           })}
         </nav>
 
-        {/* Footer with Stats and Logout */}
+        {/* Footer with Logout Only */}
         <div className="sidebar-footer">
-          <div className="sidebar-stats">
-            <div className="stat">
-              <div className="stat-icon points">
-                <Trophy size={16} />
-              </div>
-              <div className="stat-content">
-                <span className="stat-value">245</span>
-                <span className="stat-label">Points</span>
-              </div>
-            </div>
-            <div className="stat">
-              <div className="stat-icon streak">
-                <Target size={16} />
-              </div>
-              <div className="stat-content">
-                <span className="stat-value">12</span>
-                <span className="stat-label">Day Streak</span>
-              </div>
-            </div>
-          </div>
-          
           <button 
             className="sidebar-logout"
             onClick={handleLogout}

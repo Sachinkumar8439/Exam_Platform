@@ -6,52 +6,106 @@ const slugify = require("slugify");
  * ➕ Create New Course (Exam)
  * POST /api/courses
  */
-exports.createCourse = async (req, res) => {
+exports.createExam = async (req, res) => {
   try {
     const { name, description } = req.body;
 
     if (!name) {
       return res.status(400).json({
         success: false,
-        message: "Course (Exam) name is required"
+        message: "Exam name is required",
       });
     }
 
-    // 🔹 Generate slug from name
     const slug = slugify(name, { lower: true, strict: true });
 
-    // 🔹 Check duplicate by name (uppercase) or slug
-    const existingCourse = await Exam.findOne({
-      $or: [{ name: name.toUpperCase() }, { slug }]
+    // duplicate check
+    const existingExam = await Exam.findOne({
+      $or: [
+        { name: name.toUpperCase() },
+        { slug }
+      ]
     });
 
-    if (existingCourse) {
+    if (existingExam) {
       return res.status(409).json({
         success: false,
-        message: "Course (Exam) already exists"
+        message: "Exam already exists",
       });
     }
 
-    // 🔹 Create new course
-    const course = await Exam.create({
+    const exam = await Exam.create({
       name,
       slug,
       description,
-      createdBy: req.user._id  // 👈 logged-in user
+      createdBy: req.user._id,
     });
 
     res.status(201).json({
       success: true,
-      message: "Course (Exam) created successfully",
-      data: course
+      message: "Exam created successfully",
+      data: exam,
     });
 
   } catch (error) {
-    console.error("createCourse error:", error);
+    console.error("createExam error:", error);
     res.status(500).json({
       success: false,
       message: "Server error",
-      error: error.message
+    });
+  }
+};
+
+
+exports.bulkCreateExams = async (req, res) => {
+  try {
+    const { exams } = req.body;
+
+    if (!Array.isArray(exams) || exams.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Exams array is required",
+      });
+    }
+
+    // prepare docs
+    const examDocs = exams.map(exam => ({
+      name: exam.name,
+      slug: slugify(exam.name, { lower: true, strict: true }),
+      description: exam.description || "",
+      createdBy: req.user._id,
+    }));
+
+    /**
+     * ordered:false →
+     * agar ek duplicate fail ho jaye
+     * to baaki insert ho jaye
+     */
+    const insertedExams = await Exam.insertMany(examDocs, {
+      ordered: false,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Exams added successfully",
+      count: insertedExams.length,
+      data: insertedExams,
+    });
+
+  } catch (error) {
+    console.error("bulkCreateExams error:", error);
+
+    // duplicate key error handle
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Some exams already exist",
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
     });
   }
 };

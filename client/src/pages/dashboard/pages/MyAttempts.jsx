@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Search, 
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  Search,
   Clock,
   Calendar,
   Eye,
@@ -10,33 +10,33 @@ import {
   BookOpen,
   Timer,
   BarChart3,
-  SortAsc
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import "./myAttempts.css"
-import api from '../../../api/api';
+  SortAsc,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import "./myAttempts.css";
+import api from "../../../api/api";
 
 const MyAttempts = () => {
   const navigate = useNavigate();
-  
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedExam, setSelectedExam] = useState('all');
-  const [timeFilter, setTimeFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('new');
-  
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedExam, setSelectedExam] = useState("all");
+  const [timeFilter, setTimeFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("new");
+
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
@@ -44,16 +44,16 @@ const MyAttempts = () => {
       try {
         setLoading(true);
         setError(null);
-        
-        const response = await api.get('/attempts/my');
-        
+
+        const response = await api.get("/attempts/my");
+
         if (response.success) {
           setData(response);
         } else {
-          setError('Failed to fetch attempts');
+          setError("Failed to fetch attempts");
         }
       } catch (err) {
-        setError(err.response?.data?.message || 'Network error');
+        setError(err.response?.data?.message || "Network error");
       } finally {
         setLoading(false);
       }
@@ -64,41 +64,41 @@ const MyAttempts = () => {
 
   const uniqueExams = useMemo(() => {
     if (!data || !data.attempts) return [];
-    
+
     const exams = new Set();
-    data.attempts.forEach(attempt => {
+    data.attempts.forEach((attempt) => {
       if (attempt.exam?.name) {
         exams.add(attempt.exam.name);
       }
     });
-    
+
     return Array.from(exams).sort();
   }, [data]);
 
   const filteredAttempts = useMemo(() => {
     if (!data || !data.attempts) return [];
-    
+
     let filtered = [...data.attempts];
 
     if (searchQuery) {
-      filtered = filtered.filter(attempt =>
-        attempt.testTitle?.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter((attempt) =>
+        attempt.testTitle?.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 
-    if (selectedExam !== 'all') {
-      filtered = filtered.filter(attempt => 
-        attempt.exam?.name === selectedExam
+    if (selectedExam !== "all") {
+      filtered = filtered.filter(
+        (attempt) => attempt.exam?.name === selectedExam,
       );
     }
 
-    if (timeFilter !== 'all') {
+    if (timeFilter !== "all") {
       const now = new Date();
       const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      
-      filtered = filtered.filter(attempt => {
+
+      filtered = filtered.filter((attempt) => {
         const attemptDate = new Date(attempt.startedAt);
-        if (timeFilter === 'new') {
+        if (timeFilter === "new") {
           return attemptDate >= sevenDaysAgo;
         } else {
           return attemptDate < sevenDaysAgo;
@@ -109,13 +109,13 @@ const MyAttempts = () => {
     // Apply sorting
     filtered.sort((a, b) => {
       switch (sortBy) {
-        case 'new':
+        case "new":
           return new Date(b.startedAt) - new Date(a.startedAt);
-        case 'old':
+        case "old":
           return new Date(a.startedAt) - new Date(b.startedAt);
-        case 'score-high':
+        case "score-high":
           return (b.score || 0) - (a.score || 0);
-        case 'score-low':
+        case "score-low":
           return (a.score || 0) - (b.score || 0);
         default:
           return new Date(b.startedAt) - new Date(a.startedAt);
@@ -126,14 +126,14 @@ const MyAttempts = () => {
   }, [data, searchQuery, selectedExam, timeFilter, sortBy]);
 
   const formatTimeTaken = (seconds) => {
-    if (!seconds) return 'N/A';
-    
+    if (!seconds) return "N/A";
+
     if (seconds < 60) {
       return `${seconds}s`;
     } else if (seconds < 3600) {
       const minutes = Math.floor(seconds / 60);
       const remainingSeconds = seconds % 60;
-      return remainingSeconds > 0 
+      return remainingSeconds > 0
         ? `${minutes}m ${remainingSeconds}s`
         : `${minutes}m`;
     } else {
@@ -144,25 +144,36 @@ const MyAttempts = () => {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays <= 7) return `${diffDays}d ago`;
-    
-    return date.toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'short'
-    });
-  };
+  const date = new Date(dateString);
+  const now = new Date();
+
+  // Sirf date compare karne ke liye time reset
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const attemptDay = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  );
+
+  const diffDays =
+    (today - attemptDay) / (1000 * 60 * 60 * 24);
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays <= 7) return `${diffDays}d ago`;
+
+  return date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+  });
+};
+
 
   const formatTime = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -188,7 +199,7 @@ const MyAttempts = () => {
           <AlertCircle className="error-icon" size={32} />
           <h3>Error</h3>
           <p>{error}</p>
-          <button 
+          <button
             className="btn btn-primary mt-sm"
             onClick={() => window.location.reload()}
           >
@@ -205,14 +216,14 @@ const MyAttempts = () => {
         <div className="header-section">
           <h1 className="page-title">My Attempts</h1>
         </div>
-        
+
         <div className="empty-state">
           <div className="empty-state-icon">📝</div>
           <h3>No Attempts</h3>
           <p>You haven't attempted any tests</p>
-          <button 
+          <button
             className="btn btn-primary mt-sm"
-            onClick={() => navigate('/u/tests')}
+            onClick={() => navigate("/u/tests")}
           >
             Browse Tests
           </button>
@@ -260,8 +271,10 @@ const MyAttempts = () => {
                   className="filter-select"
                 >
                   <option value="all">All Exams</option>
-                  {uniqueExams.map(exam => (
-                    <option key={exam} value={exam}>{exam}</option>
+                  {uniqueExams.map((exam) => (
+                    <option key={exam} value={exam}>
+                      {exam}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -322,8 +335,10 @@ const MyAttempts = () => {
                 className="mobile-filter-select"
               >
                 <option value="all">All Exams</option>
-                {uniqueExams.map(exam => (
-                  <option key={exam} value={exam}>{exam}</option>
+                {uniqueExams.map((exam) => (
+                  <option key={exam} value={exam}>
+                    {exam}
+                  </option>
                 ))}
               </select>
             </div>
@@ -383,25 +398,41 @@ const MyAttempts = () => {
                 {filteredAttempts.map((attempt) => (
                   <tr key={attempt.attemptId}>
                     <td className="test-title-cell">
-                      <div className="test-title">{attempt.testTitle || 'Untitled Test'}</div>
-                      <div className="test-id">ID: {attempt.attemptId?.slice(-6) || 'N/A'}</div>
+                      <div className="test-title-wrapper">
+                        <div className="test-title">
+                          {attempt.testTitle || "Untitled Test"}
+                        </div>
+                        <div className="test-id-container">
+                          <div className="test-id">
+                            ID: {attempt.attemptId?.slice(-6) || "N/A"}
+                          </div>
+                        </div>
+                      </div>
                     </td>
                     <td>
                       <div className="exam-cell">
                         <BookOpen size={14} />
-                        <span>{attempt.exam?.name || 'N/A'}</span>
+                        <span>{attempt.exam?.name || "N/A"}</span>
                       </div>
                     </td>
                     <td>
                       <div className="date-cell">
-                        <div className="date">{formatDate(attempt.startedAt)}</div>
-                        <div className="time">{formatTime(attempt.startedAt)}</div>
+                        <div className="date">
+                          {formatDate(attempt.startedAt)}
+                        </div>
+                        <div className="time">
+                          {formatTime(attempt.startedAt)}
+                        </div>
                       </div>
                     </td>
                     <td>
                       <div className="score-cell">
-                        <div className="score-value">{attempt.score || 0}/{attempt.totalMarks || 0}</div>
-                        <div className="score-percentage">{attempt.percentage?.toFixed(1) || 0}%</div>
+                        <div className="score-value">
+                          {attempt.score || 0}/{attempt.totalMarks || 0}
+                        </div>
+                        <div className="score-percentage">
+                          {attempt.percentage?.toFixed(1) || 0}%
+                        </div>
                       </div>
                     </td>
                     <td>
@@ -411,8 +442,12 @@ const MyAttempts = () => {
                       </div>
                     </td>
                     <td>
-                      <div className={`status-cell ${attempt.status || 'unknown'}`}>
-                        {attempt.status === 'submitted' ? 'Completed' : 'In Progress'}
+                      <div
+                        className={`status-cell ${attempt.status || "unknown"}`}
+                      >
+                        {attempt.status === "submitted"
+                          ? "Completed"
+                          : "In Progress"}
                       </div>
                     </td>
                     <td>
@@ -431,24 +466,28 @@ const MyAttempts = () => {
           </div>
         </div>
       ) : (
-        /* Mobile Cards View */
+        /* Mobile Cards View - No changes needed here */
         <div className="mobile-cards">
           {filteredAttempts.map((attempt) => (
             <div key={attempt.attemptId} className="attempt-card">
               <div className="card-header">
                 <div className="card-title-row">
                   <div className="card-left">
-                    <div className="card-title">{attempt.testTitle || 'Untitled Test'}</div>
+                    <div className="card-title">
+                      {attempt.testTitle || "Untitled Test"}
+                    </div>
                     <div className="card-exam">
                       <BookOpen size={11} />
-                      {attempt.exam?.name || 'N/A'}
+                      {attempt.exam?.name || "N/A"}
                     </div>
                   </div>
-                  <div className={`status-badge ${attempt.status || 'unknown'}`}>
-                    {attempt.status === 'submitted' ? 'Done' : 'Progress'}
+                  <div
+                    className={`status-badge ${attempt.status || "unknown"}`}
+                  >
+                    {attempt.status === "submitted" ? "Done" : "Progress"}
                   </div>
                 </div>
-                
+
                 <div className="card-meta">
                   <span className="meta-item">
                     <Calendar size={11} />
@@ -467,11 +506,15 @@ const MyAttempts = () => {
                     <div className="stat-label">Score</div>
                     <div className="stat-value">
                       <span className="score-main">{attempt.score || 0}</span>
-                      <span className="score-total">/{attempt.totalMarks || 0}</span>
+                      <span className="score-total">
+                        /{attempt.totalMarks || 0}
+                      </span>
                     </div>
-                    <div className="stat-percent">{attempt.percentage?.toFixed(1) || 0}%</div>
+                    <div className="stat-percent">
+                      {attempt.percentage?.toFixed(1) || 0}%
+                    </div>
                   </div>
-                  
+
                   <div className="stat-item">
                     <div className="stat-label">Time Taken</div>
                     <div className="stat-value">
@@ -504,10 +547,10 @@ const MyAttempts = () => {
           <button
             className="btn btn-outline btn-sm"
             onClick={() => {
-              setSearchQuery('');
-              setSelectedExam('all');
-              setTimeFilter('all');
-              setSortBy('new');
+              setSearchQuery("");
+              setSelectedExam("all");
+              setTimeFilter("all");
+              setSortBy("new");
             }}
           >
             Clear Filters

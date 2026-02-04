@@ -191,7 +191,7 @@ exports.bulkCreateSubjects = async (req, res) => {
     if (!examId || !Array.isArray(subjects) || subjects.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "examId and subjects array are required"
+        message: "examId and subjects array are required",
       });
     }
 
@@ -200,54 +200,58 @@ exports.bulkCreateSubjects = async (req, res) => {
     if (!examExists) {
       return res.status(404).json({
         success: false,
-        message: "Exam not found"
+        message: "Exam not found",
       });
     }
 
-    // clean + normalize names
+    // normalize subjects
     const normalizedSubjects = subjects
-      .map(name => name?.trim())
+      .map(s => s?.trim()?.toUpperCase())
       .filter(Boolean);
 
-    // find existing subjects
-    const existingSubjects = await Subject.find({
-      exam: examId,
-      name: { $in: normalizedSubjects }
-    });
-
-    const existingNames = existingSubjects.map(s => s.name);
-
-    // filter new subjects only
-    const subjectsToInsert = normalizedSubjects
-      .filter(name => !existingNames.includes(name))
-      .map(name => ({
-        name,
-        exam: examId
-      }));
-
-    if (subjectsToInsert.length === 0) {
-      return res.status(409).json({
+    if (normalizedSubjects.length === 0) {
+      return res.status(400).json({
         success: false,
-        message: "All subjects already exist"
+        message: "No valid subjects provided",
       });
     }
 
-    const insertedSubjects = await Subject.insertMany(subjectsToInsert);
+    // prepare docs
+    const subjectDocs = normalizedSubjects.map(name => ({
+      name,
+      exam: examId,
+      createdBy: req.user._id,
+    }));
+
+    /**
+     * ordered:false
+     * duplicate aaye to skip ho jaye
+     */
+    const insertedSubjects = await Subject.insertMany(subjectDocs, {
+      ordered: false,
+    });
 
     res.status(201).json({
       success: true,
       message: "Subjects added successfully",
       addedCount: insertedSubjects.length,
-      skippedCount: existingNames.length,
-      skippedSubjects: existingNames,
-      data: insertedSubjects
+      data: insertedSubjects,
     });
 
   } catch (error) {
+    // duplicate key error (exam + name)
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Some subjects already exist for this exam",
+      });
+    }
+
+    console.error("bulkCreateSubjects error:", error);
     res.status(500).json({
       success: false,
       message: "Bulk insert failed",
-      error: error.message
+      error: error.message,
     });
   }
 };

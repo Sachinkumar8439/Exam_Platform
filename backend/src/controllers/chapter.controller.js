@@ -69,7 +69,7 @@ exports.bulkCreateChapters = async (req, res) => {
     if (!subjectId || !Array.isArray(chapters) || chapters.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "subjectId and chapters array are required"
+        message: "subjectId and chapters array are required",
       });
     }
 
@@ -78,53 +78,61 @@ exports.bulkCreateChapters = async (req, res) => {
     if (!subjectExists) {
       return res.status(404).json({
         success: false,
-        message: "Subject not found"
+        message: "Subject not found",
       });
     }
 
+    // normalize chapters
     const normalizedChapters = chapters
-      .map(name => name?.trim())
-      .filter(Boolean);
+      .map((c, index) => ({
+        name: c?.name?.trim()?.toUpperCase(),
+        order: c?.order ?? index + 1,
+      }))
+      .filter(c => c.name);
 
-    // find existing chapters
-    const existingChapters = await Chapter.find({
-      subject: subjectId,
-      name: { $in: normalizedChapters }
-    });
-
-    const existingNames = existingChapters.map(c => c.name);
-
-    // filter new chapters only
-    const chaptersToInsert = normalizedChapters
-      .filter(name => !existingNames.includes(name))
-      .map(name => ({
-        name,
-        subject: subjectId
-      }));
-
-    if (chaptersToInsert.length === 0) {
-      return res.status(409).json({
+    if (normalizedChapters.length === 0) {
+      return res.status(400).json({
         success: false,
-        message: "All chapters already exist"
+        message: "No valid chapters provided",
       });
     }
 
-    const insertedChapters = await Chapter.insertMany(chaptersToInsert);
+    // prepare docs
+    const chapterDocs = normalizedChapters.map(c => ({
+      name: c.name,
+      order: c.order,
+      subject: subjectId,
+      createdBy: req.user._id,
+    }));
+
+    /**
+     * ordered:false
+     * duplicate chapters skip ho jayenge
+     */
+    const insertedChapters = await Chapter.insertMany(chapterDocs, {
+      ordered: false,
+    });
 
     res.status(201).json({
       success: true,
       message: "Chapters added successfully",
       addedCount: insertedChapters.length,
-      skippedCount: existingNames.length,
-      skippedChapters: existingNames,
-      data: insertedChapters
+      data: insertedChapters,
     });
 
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Some chapters already exist for this subject",
+      });
+    }
+
+    console.error("bulkCreateChapters error:", error);
     res.status(500).json({
       success: false,
       message: "Bulk insert failed",
-      error: error.message
+      error: error.message,
     });
   }
 };

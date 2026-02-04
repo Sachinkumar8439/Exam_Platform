@@ -179,9 +179,9 @@ const TestReport = () => {
   // Loading State
   if (loading) {
     return (
-      <div className="page-container">
-        <div className="loading-state">
-          <Loader2 className="loading-icon" size={48} />
+      <div className="test-report-page-container">
+        <div className="test-report-loading-state">
+          <Loader2 className="test-report-loading-icon" size={48} />
           <h3>Loading test report...</h3>
           <p>Please wait while we fetch the data</p>
         </div>
@@ -192,13 +192,13 @@ const TestReport = () => {
   // Error State
   if (error) {
     return (
-      <div className="page-container">
-        <div className="error-state">
-          <AlertCircle className="error-icon" size={48} />
+      <div className="test-report-page-container">
+        <div className="test-report-error-state">
+          <AlertCircle className="test-report-error-icon" size={48} />
           <h3>Error Loading Report</h3>
           <p>{error}</p>
           <button 
-            className="btn btn-primary mt-md"
+            className="test-report-btn test-report-btn-primary test-report-mt-md"
             onClick={() => window.location.reload()}
           >
             Try Again
@@ -211,9 +211,9 @@ const TestReport = () => {
   // No Data State
   if (!data || !data.test) {
     return (
-      <div className="page-container">
-        <div className="empty-state">
-          <div className="empty-state-icon">📊</div>
+      <div className="test-report-page-container">
+        <div className="test-report-empty-state">
+          <div className="test-report-empty-state-icon">📊</div>
           <h3>No Test Data Found</h3>
           <p>The test report could not be loaded</p>
         </div>
@@ -222,28 +222,28 @@ const TestReport = () => {
   }
 
   return (
-    <div className="page-container">
+    <div className="test-report-page-container">
       {/* Page Header */}
-      <header className="page-header">
+      <header className="test-report-header">
         <div>
-          <h1 className="page-title">{data.test.title}</h1>
-          <div className="test-meta">
-            <span className="test-meta-item">
+          <h1 className="test-report-title">{data.test.title}</h1>
+          <div className="test-report-meta">
+            <span className="test-report-meta-item">
               <Clock size={16} />
               Duration: {data.test.duration} minutes
             </span>
-            <span className="test-meta-item">
+            <span className="test-report-meta-item">
               <Award size={16} />
               Total Marks: {data.test.totalMarks}
             </span>
-            <span className="test-meta-item">
+            <span className="test-report-meta-item">
               <User size={16} />
               Total Attempts: {data.totalAttempts || 0}
             </span>
           </div>
         </div>
         <button 
-          className="btn btn-primary"
+          className="test-report-btn test-report-btn-primary"
           onClick={handleExport}
           disabled={selectedUsers.size === 0}
         >
@@ -254,11 +254,11 @@ const TestReport = () => {
 
       {/* Filters Section - Only show if there are attempts */}
       {data.attempts && data.attempts.length > 0 && (
-        <div className="card filters-section">
-          <div className="filters-grid">
+        <div className="test-report-filters-section">
+          <div className="test-report-filters-grid">
             {/* Search Filter */}
-            <div className="filter-group">
-              <label className="filter-label">
+            <div className="test-report-filter-group">
+              <label className="test-report-filter-label">
                 <Search size={18} />
                 Search Student
               </label>
@@ -267,15 +267,15 @@ const TestReport = () => {
                 placeholder="Enter student name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="filter-input"
+                className="test-report-filter-input"
               />
             </div>
 
             {/* Score Range Filters */}
-            <div className="filter-group">
-              <label className="filter-label">Score Range</label>
-              <div className="score-range">
-                <div className="range-input-group">
+            <div className="test-report-filter-group">
+              <label className="test-report-filter-label">Score Range</label>
+              <div className="test-report-score-range">
+                <div className="test-report-range-input-group">
                   <span>Min:</span>
                   <input
                     type="number"
@@ -283,10 +283,10 @@ const TestReport = () => {
                     max={data.test.totalMarks}
                     value={minScore}
                     onChange={(e) => setMinScore(parseInt(e.target.value) || 0)}
-                    className="range-input"
+                    className="test-report-range-input"
                   />
                 </div>
-                <div className="range-input-group">
+                <div className="test-report-range-input-group">
                   <span>Max:</span>
                   <input
                     type="number"
@@ -294,19 +294,19 @@ const TestReport = () => {
                     max={data.test.totalMarks}
                     value={maxScore}
                     onChange={(e) => setMaxScore(parseInt(e.target.value) || data.test.totalMarks)}
-                    className="range-input"
+                    className="test-report-range-input"
                   />
                 </div>
               </div>
             </div>
 
             {/* Selection Controls */}
-            <div className="filter-group">
-              <label className="filter-label">Selection</label>
-              <div className="selection-buttons">
+            <div className="test-report-filter-group">
+              <label className="test-report-filter-label">Selection</label>
+              <div className="test-report-selection-buttons">
                 <button 
                   onClick={selectAllFiltered}
-                  className="btn btn-outline selection-btn"
+                  className="test-report-btn test-report-btn-outline test-report-selection-btn"
                   disabled={filteredAttempts.length === 0}
                 >
                   <CheckSquare size={16} />
@@ -314,14 +314,14 @@ const TestReport = () => {
                 </button>
                 <button 
                   onClick={clearSelection}
-                  className="btn btn-outline selection-btn"
+                  className="test-report-btn test-report-btn-outline test-report-selection-btn"
                 >
                   <Square size={16} />
                   Clear Selection
                 </button>
               </div>
               {selectedUsers.size > 0 && (
-                <div className="selected-count">
+                <div className="test-report-selected-count">
                   <CheckCircle size={16} />
                   {selectedUsers.size} student(s) selected
                 </div>
@@ -332,18 +332,18 @@ const TestReport = () => {
       )}
 
       {/* Results Table */}
-      <div className="card results-section">
-        <div className="results-header">
-          <h2 className="results-title">Test Attempts</h2>
-          <div className="results-count">
+      <div className="test-report-results-section">
+        <div className="test-report-results-header">
+          <h2 className="test-report-results-title">Test Attempts</h2>
+          <div className="test-report-results-count">
             Showing {filteredAttempts.length} of {data.totalAttempts || 0} attempts
           </div>
         </div>
 
         {/* No Attempts Message */}
         {(!data.attempts || data.attempts.length === 0) && (
-          <div className="empty-state">
-            <div className="empty-state-icon">📝</div>
+          <div className="test-report-empty-state">
+            <div className="test-report-empty-state-icon">📝</div>
             <h3>No Attempts Yet</h3>
             <p>No students have attempted this test yet.</p>
           </div>
@@ -352,8 +352,8 @@ const TestReport = () => {
         {/* Table for Desktop - Only show if there are filtered attempts */}
         {filteredAttempts.length > 0 && (
           <>
-            <div className="table-container">
-              <table className="attempts-table">
+            <div className="test-report-table-container">
+              <table className="test-report-attempts-table">
                 <thead>
                   <tr>
                     <th>
@@ -370,26 +370,26 @@ const TestReport = () => {
                         }}
                       />
                     </th>
-                    <th onClick={() => handleSort('name')} className="sortable">
+                    <th onClick={() => handleSort('name')} className="test-report-sortable">
                       Student Name
                       {sortBy === 'name' && (
                         sortOrder === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
                       )}
                     </th>
-                    <th onClick={() => handleSort('score')} className="sortable">
+                    <th onClick={() => handleSort('score')} className="test-report-sortable">
                       Score
                       {sortBy === 'score' && (
                         sortOrder === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
                       )}
                     </th>
                     <th>Percentage</th>
-                    <th onClick={() => handleSort('time')} className="sortable">
+                    <th onClick={() => handleSort('time')} className="test-report-sortable">
                       Time Taken
                       {sortBy === 'time' && (
                         sortOrder === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
                       )}
                     </th>
-                    <th onClick={() => handleSort('date')} className="sortable">
+                    <th onClick={() => handleSort('date')} className="test-report-sortable">
                       Attempt Date
                       {sortBy === 'date' && (
                         sortOrder === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
@@ -401,7 +401,7 @@ const TestReport = () => {
                   {filteredAttempts.map((attempt) => (
                     <tr 
                       key={attempt.userId}
-                      className={selectedUsers.has(attempt.userId) ? 'selected-row' : ''}
+                      className={selectedUsers.has(attempt.userId) ? 'test-report-selected-row' : ''}
                     >
                       <td>
                         <input
@@ -410,49 +410,49 @@ const TestReport = () => {
                           onChange={() => toggleUserSelection(attempt.userId)}
                         />
                       </td>
-                      <td className="student-cell">
-                        <div className="student-info">
-                          <div className="student-avatar">
+                      <td className="test-report-student-cell">
+                        <div className="test-report-student-info">
+                          <div className="test-report-student-avatar">
                             {attempt.name.charAt(0)}
                           </div>
-                          <div className="student-details">
-                            <div className="student-name">{attempt.name}</div>
-                            <small className="student-id">ID: {attempt.userId.slice(-6)}</small>
+                          <div className="test-report-student-details">
+                            <div className="test-report-student-name">{attempt.name}</div>
+                            <small className="test-report-student-id">ID: {attempt.userId.slice(-6)}</small>
                           </div>
                         </div>
                       </td>
                       <td>
-                        <div className="score-display">
-                          <span className="score-value">{attempt.score}</span>
-                          <span className="score-total">/{data.test.totalMarks}</span>
+                        <div className="test-report-score-display">
+                          <span className="test-report-score-value">{attempt.score}</span>
+                          <span className="test-report-score-total">/{data.test.totalMarks}</span>
                         </div>
                       </td>
                       <td>
-                        <div className="percentage-container">
-                          <div className="percentage-bar">
+                        <div className="test-report-percentage-container">
+                          <div className="test-report-percentage-bar">
                             <div 
-                              className="percentage-fill"
+                              className="test-report-percentage-fill"
                               style={{ width: `${attempt.percentage}%` }}
                             ></div>
                           </div>
-                          <span className="percentage-value">{attempt.percentage.toFixed(1)}%</span>
+                          <span className="test-report-percentage-value">{attempt.percentage.toFixed(1)}%</span>
                         </div>
                       </td>
                       <td>
-                        <div className="time-display">
+                        <div className="test-report-time-display">
                           <Clock size={16} />
                           {attempt.timeTakenMinutes.toFixed(1)} min
-                          <div className="time-status">
+                          <div className="test-report-time-status">
                             {attempt.timeTakenMinutes <= data.test.duration ? (
-                              <span className="status-success">On Time</span>
+                              <span className="test-report-status-success">On Time</span>
                             ) : (
-                              <span className="status-warning">Overtime</span>
+                              <span className="test-report-status-warning">Overtime</span>
                             )}
                           </div>
                         </div>
                       </td>
                       <td>
-                        <div className="date-display">
+                        <div className="test-report-date-display">
                           <Calendar size={16} />
                           <div>
                             <div>{formatDate(attempt.startedAt)}</div>
@@ -467,45 +467,45 @@ const TestReport = () => {
             </div>
 
             {/* Mobile Cards View */}
-            <div className="mobile-cards">
+            <div className="test-report-mobile-cards">
               {filteredAttempts.map((attempt) => (
                 <div 
                   key={attempt.userId} 
-                  className={`mobile-card ${selectedUsers.has(attempt.userId) ? 'selected-card' : ''}`}
+                  className={`test-report-mobile-card ${selectedUsers.has(attempt.userId) ? 'test-report-selected-card' : ''}`}
                 >
-                  <div className="mobile-card-header">
+                  <div className="test-report-mobile-card-header">
                     <input
                       type="checkbox"
                       checked={selectedUsers.has(attempt.userId)}
                       onChange={() => toggleUserSelection(attempt.userId)}
                     />
-                    <div className="mobile-student-info">
-                      <div className="mobile-student-name">{attempt.name}</div>
+                    <div className="test-report-mobile-student-info">
+                      <div className="test-report-mobile-student-name">{attempt.name}</div>
                       <small>ID: {attempt.userId.slice(-6)}</small>
                     </div>
                   </div>
 
-                  <div className="mobile-card-content">
-                    <div className="mobile-stat">
-                      <span className="stat-label">Score:</span>
-                      <span className="stat-value">{attempt.score}/{data.test.totalMarks}</span>
+                  <div className="test-report-mobile-card-content">
+                    <div className="test-report-mobile-stat">
+                      <span className="test-report-stat-label">Score:</span>
+                      <span className="test-report-stat-value">{attempt.score}/{data.test.totalMarks}</span>
                     </div>
-                    <div className="mobile-stat">
-                      <span className="stat-label">Percentage:</span>
-                      <span className="stat-value">{attempt.percentage.toFixed(1)}%</span>
+                    <div className="test-report-mobile-stat">
+                      <span className="test-report-stat-label">Percentage:</span>
+                      <span className="test-report-stat-value">{attempt.percentage.toFixed(1)}%</span>
                     </div>
-                    <div className="mobile-stat">
-                      <span className="stat-label">Time Taken:</span>
-                      <span className="stat-value">
+                    <div className="test-report-mobile-stat">
+                      <span className="test-report-stat-label">Time Taken:</span>
+                      <span className="test-report-stat-value">
                         {attempt.timeTakenMinutes.toFixed(1)} min
                         {attempt.timeTakenMinutes > data.test.duration && (
-                          <span className="mobile-status-warning"> (Overtime)</span>
+                          <span className="test-report-mobile-status-warning"> (Overtime)</span>
                         )}
                       </span>
                     </div>
-                    <div className="mobile-stat">
-                      <span className="stat-label">Attempt Date:</span>
-                      <span className="stat-value">
+                    <div className="test-report-mobile-stat">
+                      <span className="test-report-stat-label">Attempt Date:</span>
+                      <span className="test-report-stat-value">
                         {formatDate(attempt.startedAt)} at {formatTime(attempt.startedAt)}
                       </span>
                     </div>
@@ -518,8 +518,8 @@ const TestReport = () => {
 
         {/* No Filter Results */}
         {data.attempts && data.attempts.length > 0 && filteredAttempts.length === 0 && (
-          <div className="empty-state">
-            <div className="empty-state-icon">🔍</div>
+          <div className="test-report-empty-state">
+            <div className="test-report-empty-state-icon">🔍</div>
             <h3>No matching attempts</h3>
             <p>Try adjusting your search or filters</p>
           </div>
